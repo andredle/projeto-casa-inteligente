@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../controller/gestao_permissoes_controller.dart'; // Ajuste o caminho se necessário
 
 class GestaoPermissoesView extends StatefulWidget {
   const GestaoPermissoesView({super.key});
@@ -8,22 +9,25 @@ class GestaoPermissoesView extends StatefulWidget {
 }
 
 class _GestaoPermissoesViewState extends State<GestaoPermissoesView> {
-  // Administrador
-  final String _user1Funcao = 'Administrador - Acesso Total';
+  // Instância do Controller
+  final GestaoPermissoesController _controller = GestaoPermissoesController();
 
-  bool _user2Editando = false;
-  bool _user2ControleGeral = true;
-  bool _user2Seguranca = true;
-  bool _user2Gerenciamento = false;
-  String _user2Funcao = 'Membro Sênior';
+  @override
+  void initState() {
+    super.initState();
+    // Ouve as alterações do controller para redesenhar a tela reativamente
+    _controller.addListener(() {
+      setState(() {});
+    });
+  }
 
-  bool _user3Editando = false;
-  bool _user3ControleGeral = true;
-  bool _user3Seguranca = false;
-  bool _user3Gerenciamento = false;
-  String _user3Funcao = 'Criança / Restrito';
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
-  void _mostrarSeletorFuncao(String membroNome, Function(String) onSelected) {
+  void _mostrarSeletorFuncao(String membroNome, int index) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -49,7 +53,7 @@ class _GestaoPermissoesViewState extends State<GestaoPermissoesView> {
                 leading: const Icon(Icons.child_care, color: Color(0xFF4C6EF5)),
                 title: const Text('Criança / Restrito'),
                 onTap: () {
-                  onSelected('Criança / Restrito');
+                  _controller.setFuncao(index, 'Criança / Restrito');
                   Navigator.pop(context);
                 },
               ),
@@ -57,7 +61,7 @@ class _GestaoPermissoesViewState extends State<GestaoPermissoesView> {
                 leading: const Icon(Icons.person, color: Color(0xFF4C6EF5)),
                 title: const Text('Membro Comum'),
                 onTap: () {
-                  onSelected('Membro Comum');
+                  _controller.setFuncao(index, 'Membro Comum');
                   Navigator.pop(context);
                 },
               ),
@@ -65,7 +69,7 @@ class _GestaoPermissoesViewState extends State<GestaoPermissoesView> {
                 leading: const Icon(Icons.star, color: Color(0xFF4C6EF5)),
                 title: const Text('Membro Sênior'),
                 onTap: () {
-                  onSelected('Membro Sênior');
+                  _controller.setFuncao(index, 'Membro Sênior');
                   Navigator.pop(context);
                 },
               ),
@@ -78,6 +82,10 @@ class _GestaoPermissoesViewState extends State<GestaoPermissoesView> {
 
   @override
   Widget build(BuildContext context) {
+    // Membro 2 e Membro 3 obtidos diretamente do controller
+    final user2 = _controller.membros[0];
+    final user3 = _controller.membros[1];
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
       appBar: AppBar(
@@ -105,36 +113,28 @@ class _GestaoPermissoesViewState extends State<GestaoPermissoesView> {
             _buildAdminCard(
               nome: 'User 1 (você)',
               papel: 'Administrador Principal',
-              funcaoTexto: _user1Funcao,
+              funcaoTexto: _controller.user1Funcao,
             ),
             const SizedBox(height: 16),
 
             _buildMembroCard(
-              nome: 'User 2',
-              papel: _user2Editando ? 'Editando Permissões...' : 'Membro da Família',
+              nome: user2.nome,
+              papel: user2.isEditando ? 'Editando Permissões...' : 'Membro da Família',
               isAdm: false,
-              isEditando: _user2Editando,
-              controleGeral: _user2ControleGeral,
-              onControleGeralChanged: _user2Editando ? (v) => setState(() => _user2ControleGeral = v) : null,
-              seguranca: _user2Seguranca,
-              onSegurancaChanged: _user2Editando ? (v) => setState(() => _user2Seguranca = v) : null,
-              gerenciamento: _user2Gerenciamento,
-              onGerenciamentoChanged: _user2Editando ? (v) => setState(() => _user2Gerenciamento = v) : null,
-              funcaoTexto: _user2Funcao,
-              onTapFuncao: _user2Editando ? () {
-                _mostrarSeletorFuncao('User 2', (novaFuncao) {
-                  setState(() {
-                    _user2Funcao = novaFuncao;
-                  });
-                });
-              } : null,
+              isEditando: user2.isEditando,
+              controleGeral: user2.controleGeral,
+              onControleGeralChanged: user2.isEditando ? (v) => _controller.setControleGeral(0, v) : null,
+              seguranca: user2.seguranca,
+              onSegurancaChanged: user2.isEditando ? (v) => _controller.setSeguranca(0, v) : null,
+              gerenciamento: user2.gerenciamento,
+              onGerenciamentoChanged: user2.isEditando ? (v) => _controller.setGerenciamento(0, v) : null,
+              funcaoTexto: user2.funcao,
+              onTapFuncao: user2.isEditando ? () => _mostrarSeletorFuncao(user2.nome, 0) : null,
               onPressedEditarSalvar: () {
-                setState(() {
-                  _user2Editando = !_user2Editando;
-                });
-                if (!_user2Editando) {
+                _controller.alternarModoEdicao(0);
+                if (!user2.isEditando) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Alterações de User 2 salvas com sucesso!'), backgroundColor: Colors.green),
+                    SnackBar(content: Text('Alterações de ${user2.nome} salvas com sucesso!'), backgroundColor: Colors.green),
                   );
                 }
               },
@@ -142,31 +142,23 @@ class _GestaoPermissoesViewState extends State<GestaoPermissoesView> {
             const SizedBox(height: 16),
 
             _buildMembroCard(
-              nome: 'User 3',
-              papel: _user3Editando ? 'Editando Permissões...' : 'Membro da Família',
+              nome: user3.nome,
+              papel: user3.isEditando ? 'Editando Permissões...' : 'Membro da Família',
               isAdm: false,
-              isEditando: _user3Editando,
-              controleGeral: _user3ControleGeral,
-              onControleGeralChanged: _user3Editando ? (v) => setState(() => _user3ControleGeral = v) : null,
-              seguranca: _user3Seguranca,
-              onSegurancaChanged: _user3Editando ? (v) => setState(() => _user3Seguranca = v) : null,
-              gerenciamento: _user3Gerenciamento,
-              onGerenciamentoChanged: _user3Editando ? (v) => setState(() => _user3Gerenciamento = v) : null,
-              funcaoTexto: _user3Funcao,
-              onTapFuncao: _user3Editando ? () {
-                _mostrarSeletorFuncao('User 3', (novaFuncao) {
-                  setState(() {
-                    _user3Funcao = novaFuncao;
-                  });
-                });
-              } : null,
+              isEditando: user3.isEditando,
+              controleGeral: user3.controleGeral,
+              onControleGeralChanged: user3.isEditando ? (v) => _controller.setControleGeral(1, v) : null,
+              seguranca: user3.seguranca,
+              onSegurancaChanged: user3.isEditando ? (v) => _controller.setSeguranca(1, v) : null,
+              gerenciamento: user3.gerenciamento,
+              onGerenciamentoChanged: user3.isEditando ? (v) => _controller.setGerenciamento(1, v) : null,
+              funcaoTexto: user3.funcao,
+              onTapFuncao: user3.isEditando ? () => _mostrarSeletorFuncao(user3.nome, 1) : null,
               onPressedEditarSalvar: () {
-                setState(() {
-                  _user3Editando = !_user3Editando;
-                });
-                if (!_user3Editando) {
+                _controller.alternarModoEdicao(1);
+                if (!user3.isEditando) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Alterações de User 3 salvas com sucesso!'), backgroundColor: Colors.green),
+                    SnackBar(content: Text('Alterações de ${user3.nome} salvas com sucesso!'), backgroundColor: Colors.green),
                   );
                 }
               },
@@ -250,7 +242,7 @@ class _GestaoPermissoesViewState extends State<GestaoPermissoesView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'FUNÇÃO: Administrador',
+                  'FUNÇÃO: $funcaoTexto',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
