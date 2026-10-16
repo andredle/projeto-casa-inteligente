@@ -10,10 +10,10 @@ class PerfilView extends StatefulWidget {
 class _PerfilViewState extends State<PerfilView> {
   // Controlador para o campo de nome que pode ser editado
   final TextEditingController _nomeController =
-      TextEditingController(text: 'Francis Oceano');
+      TextEditingController(text: 'User Teste');
 
   // E-mail fixo institucional (apenas visualização conforme RF005)[cite: 4]
-  final String _emailUsuario = 'francisoceano@applindo.com';
+  final String _emailUsuario = 'userteste@teste.com';
 
   @override
   void dispose() {
@@ -245,7 +245,6 @@ class _PerfilViewState extends State<PerfilView> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: const [
-            Icon(Icons.add, color: Colors.white),
             CircleAvatar(
               backgroundColor: Color(0xFF1E3A8A),
               child: Icon(Icons.mic, color: Colors.white),
