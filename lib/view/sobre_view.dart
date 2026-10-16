@@ -28,7 +28,6 @@ class SobreView extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Logotipo da Aplicação
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -59,7 +58,6 @@ class SobreView extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Card: Objetivo do Aplicativo
             _buildInfoCard(
               title: 'OBJETIVO DO APLICATIVO',
               content:
@@ -68,7 +66,7 @@ class SobreView extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            // Card: Equipe de Desenvolvimento
+
             _buildTeamCard(
               title: 'EQUIPE DE DESENVOLVIMENTO',
               members: [
@@ -78,7 +76,6 @@ class SobreView extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            // Card: Versão
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -145,7 +142,7 @@ class SobreView extends StatelessWidget {
 Widget _buildInfoCard({
   required String title, 
   required String content, 
-  TextAlign alignment = TextAlign.center, // Permite escolher o alinhamento (centro por defeito)
+  TextAlign alignment = TextAlign.center,
 }) {
   return Container(
     width: double.infinity,
@@ -156,7 +153,6 @@ Widget _buildInfoCard({
       border: Border.all(color: const Color(0xFFD1D5DB)),
     ),
     child: Column(
-      // Alinha os elementos horizontalmente com base no alinhamento escolhido
       crossAxisAlignment: alignment == TextAlign.center 
           ? CrossAxisAlignment.center 
           : CrossAxisAlignment.start,
@@ -178,7 +174,7 @@ Widget _buildInfoCard({
             color: Color(0xFF1F2937),
             height: 1.4,
           ),
-          textAlign: alignment, // Centraliza ou alinha o texto do conteúdo
+          textAlign: alignment, 
         ),
       ],
     ),
