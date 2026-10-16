@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../controller/perfil_controller.dart';
 
 class PerfilView extends StatefulWidget {
   const PerfilView({super.key});
@@ -8,49 +9,44 @@ class PerfilView extends StatefulWidget {
 }
 
 class _PerfilViewState extends State<PerfilView> {
-  final TextEditingController _nomeController =
-      TextEditingController(text: 'User Teste');
+  final PerfilController _controller = PerfilController();
+  late final TextEditingController _nomeController;
 
-  final String _emailUsuario = 'userteste@teste.com';
+  @override
+  void initState() {
+    super.initState();
+    _nomeController = TextEditingController(text: _controller.nomeUsuario);
+    
+    _controller.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   void dispose() {
     _nomeController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  void _salvarAlteracoes() {
-    String novoNome = _nomeController.text.trim();
+  void _aoClicarSalvar() {
+    String? erro = _controller.atualizarPerfil(_nomeController.text);
 
-    if (novoNome.isEmpty) {
+    if (erro != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erro: O campo Nome não pode estar vazio!'),
+        SnackBar(
+          content: Text(erro),
           backgroundColor: Colors.red,
         ),
       );
-      return;
-    }
-
-    if (novoNome.length < 4) {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erro: O nome deve ter no mínimo 4 caracteres!'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: Text('Sucesso! Perfil atualizado para: ${_controller.nomeUsuario}'),
+          backgroundColor: Colors.green,
         ),
       );
-      return;
     }
-
-    setState(() {
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Sucesso! Perfil atualizado para: $novoNome'),
-        backgroundColor: Colors.green,
-      ),
-    );
   }
 
   @override
@@ -102,7 +98,7 @@ class _PerfilViewState extends State<PerfilView> {
             ),
             const SizedBox(height: 16),
             Text(
-              _nomeController.text,
+              _controller.nomeUsuario,
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -159,7 +155,7 @@ class _PerfilViewState extends State<PerfilView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'E-MAIL (NÃO EDITÁVEL)',
+                    'E-MAIL',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -171,7 +167,7 @@ class _PerfilViewState extends State<PerfilView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _emailUsuario,
+                        _controller.emailUsuario,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -197,7 +193,7 @@ class _PerfilViewState extends State<PerfilView> {
                   ),
                   elevation: 2,
                 ),
-                onPressed: _salvarAlteracoes,
+                onPressed: _aoClicarSalvar,
                 child: const Text(
                   'SALVAR ALTERAÇÕES',
                   style: TextStyle(
@@ -223,20 +219,6 @@ class _PerfilViewState extends State<PerfilView> {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Container(
-        height: 60,
-        color: const Color(0xFF4C6EF5),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: const [
-            CircleAvatar(
-              backgroundColor: Color(0xFF1E3A8A),
-              child: Icon(Icons.mic, color: Colors.white),
-            ),
-            Icon(Icons.settings, color: Colors.white),
           ],
         ),
       ),
