@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 class RotinaModelItem {
@@ -17,12 +18,11 @@ class RotinaModelItem {
 }
 
 class RotinasController extends ChangeNotifier {
-  // Lista de rotinas gerenciadas pelo controller
   final List<RotinaModelItem> _rotinas = [
     RotinaModelItem(
       titulo: 'Modo Noite',
       subtitulo: 'Aciona às 22:00',
-      detalhes: 'Luzes da Sala desliga\nAr do Quarto liga',
+      detalhes: 'Luzes da Sala desligam\nAr do Quarto liga',
       icone: Icons.nightlight_round,
       ativo: true,
     ),
@@ -49,25 +49,51 @@ class RotinasController extends ChangeNotifier {
     ),
   ];
 
-  List<RotinaModelItem> get rotinas => _rotinas;
+  List<RotinaModelItem> get rotinas =>
+      List.unmodifiable(_rotinas);
 
-  // Método para alternar o estado de uma rotina específica e notificar a tela
   void toggleRotina(int index, bool valor) {
+    if (index < 0 || index >= _rotinas.length) return;
+
     _rotinas[index].ativo = valor;
-    notifyListeners(); // Atualiza a interface de forma reativa conforme exigido pelo projeto
+    notifyListeners();
   }
 
-  // Método para adicionar uma nova rotina à lista
-  void adicionarRotina(String titulo, String subtitulo, String detalhes) {
+  bool adicionarRotina(
+    String titulo,
+    String subtitulo,
+    String detalhes, {
+    IconData icone = Icons.schedule,
+  }) {
+    final nomeLimpo = titulo.trim();
+
+    if (nomeLimpo.isEmpty) return false;
+
+    final jaExiste = _rotinas.any(
+      (rotina) =>
+          rotina.titulo.toLowerCase() == nomeLimpo.toLowerCase(),
+    );
+
+    if (jaExiste) return false;
+
     _rotinas.add(
       RotinaModelItem(
-        titulo: titulo,
+        titulo: nomeLimpo,
         subtitulo: subtitulo,
         detalhes: detalhes,
-        icone: Icons.schedule,
+        icone: icone,
         ativo: true,
       ),
     );
+
+    notifyListeners();
+    return true;
+  }
+
+  void excluirRotina(int index) {
+    if (index < 0 || index >= _rotinas.length) return;
+
+    _rotinas.removeAt(index);
     notifyListeners();
   }
 }

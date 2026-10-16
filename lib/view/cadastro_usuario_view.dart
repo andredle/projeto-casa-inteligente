@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import '../controller/cadastro_usuario_controller.dart';
+import '../controller/usuario_controller.dart';
 
 class CadastroUsuarioView extends StatefulWidget {
   const CadastroUsuarioView({super.key});
@@ -39,37 +40,47 @@ class _CadastroUsuarioViewState
   }
 
   void cadastrar() {
-    final erros = controller.validarCadastro(
-      nome: nome.text,
-      email: email.text,
-      telefone: telefone.text,
-      senha: senha.text,
-      confirmarSenha: confirmarSenha.text,
-    );
+  final erros = controller.validarCadastro(
+    nome: nome.text,
+    email: email.text,
+    telefone: telefone.text,
+    senha: senha.text,
+    confirmarSenha: confirmarSenha.text,
+  );
 
-    setState(() {
-      erroNome = erros['nome'];
-      erroEmail = erros['email'];
-      erroTelefone = erros['telefone'];
-      erroSenha = erros['senha'];
-      erroConfirmarSenha = erros['confirmarSenha'];
-    });
+  setState(() {
+    erroNome = erros['nome'];
+    erroEmail = erros['email'];
+    erroTelefone = erros['telefone'];
+    erroSenha = erros['senha'];
+    erroConfirmarSenha = erros['confirmarSenha'];
+  });
 
-    if (erros.values.any((erro) => erro != null)) {
-      return;
-    }
-
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      'home',
-      (route) => false,
-      arguments: nome.text.trim(),
-    );
+  if (erros.values.any((erro) => erro != null)) {
+    return;
   }
+
+  UsuarioController.instance.atualizarNome(
+    nome.text.trim(),
+  );
+
+  UsuarioController.instance.atualizarEmail(
+    email.text.trim(),
+  );
+
+  UsuarioController.instance.autenticar();
+
+  Navigator.pushNamedAndRemoveUntil(
+    context,
+    'home',
+    (route) => false,
+    arguments: nome.text.trim(),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
-    const corPrincipal = Color(0xFF167D83);
+    const corPrincipal = Color(0xFF4C6EF5);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F5FA),

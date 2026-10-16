@@ -10,7 +10,7 @@ class ComodosView extends StatefulWidget {
 }
 
 class _ComodosViewState extends State<ComodosView> {
-  static const corPrincipal = Color(0xFF167D83);
+  static const corPrincipal = Color(0xFF4C6EF5);
 
   late final ComodosController controller;
 

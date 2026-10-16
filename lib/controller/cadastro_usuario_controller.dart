@@ -14,17 +14,23 @@ class CadastroUsuarioController extends ChangeNotifier {
     return null;
   }
 
-  String? validarEmail(String email) {
-    if (email.trim().isEmpty) {
-      return 'Informe seu e-mail.';
-    }
-
-    if (!email.trim().contains('@')) {
-      return 'Digite um e-mail válido.';
-    }
-
-    return null;
+  
+String? validarEmail(String email) {
+  if (email.trim().isEmpty) {
+    return 'Informe seu e-mail.';
   }
+
+  final regex = RegExp(
+    r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+  );
+
+  if (!regex.hasMatch(email.trim())) {
+    return 'Digite um e-mail válido.';
+  }
+
+  return null;
+}
+
 
   String? validarTelefone(String telefone) {
     if (telefone.trim().isEmpty) {

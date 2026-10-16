@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import '../controller/login_controller.dart';
+import '../controller/usuario_controller.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -41,6 +42,11 @@ class _LoginViewState extends State<LoginView> {
       return;
     }
 
+    UsuarioController.instance
+        .atualizarEmail(email.text.trim());
+
+    UsuarioController.instance.autenticar();
+
     Navigator.pushNamedAndRemoveUntil(
       context,
       'home',
@@ -50,7 +56,7 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    const corPrincipal = Color(0xFF167D83);
+    const corPrincipal = Color(0xFF4C6EF5);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F5FA),
@@ -67,7 +73,6 @@ class _LoginViewState extends State<LoginView> {
                   color: corPrincipal,
                 ),
                 const SizedBox(height: 16),
-
                 const Text(
                   'Bem-vindo!',
                   textAlign: TextAlign.center,
@@ -77,7 +82,6 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ),
                 const SizedBox(height: 8),
-
                 const Text(
                   'Entre na sua conta para continuar.',
                   textAlign: TextAlign.center,
@@ -91,9 +95,12 @@ class _LoginViewState extends State<LoginView> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     hintText: 'Digite seu e-mail',
-                    prefixIcon: const Icon(Icons.email_outlined),
+                    prefixIcon: const Icon(
+                      Icons.email_outlined,
+                    ),
                     border: const OutlineInputBorder(),
-                    focusedBorder: const OutlineInputBorder(
+                    focusedBorder:
+                        const OutlineInputBorder(
                       borderSide: BorderSide(
                         color: corPrincipal,
                         width: 2,
@@ -113,9 +120,12 @@ class _LoginViewState extends State<LoginView> {
                   obscureText: true,
                   decoration: InputDecoration(
                     hintText: 'Digite sua senha',
-                    prefixIcon: const Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(
+                      Icons.lock_outline,
+                    ),
                     border: const OutlineInputBorder(),
-                    focusedBorder: const OutlineInputBorder(
+                    focusedBorder:
+                        const OutlineInputBorder(
                       borderSide: BorderSide(
                         color: corPrincipal,
                         width: 2,

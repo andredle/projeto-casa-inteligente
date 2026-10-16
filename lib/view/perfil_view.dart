@@ -1,5 +1,8 @@
+
 import 'package:flutter/material.dart';
+
 import '../controller/perfil_controller.dart';
+import '../controller/usuario_controller.dart';
 
 class PerfilView extends StatefulWidget {
   const PerfilView({super.key});
@@ -10,27 +13,45 @@ class PerfilView extends StatefulWidget {
 
 class _PerfilViewState extends State<PerfilView> {
   final PerfilController _controller = PerfilController();
+
+  final UsuarioController _usuarioController =
+      UsuarioController.instance;
+
   late final TextEditingController _nomeController;
 
   @override
   void initState() {
     super.initState();
-    _nomeController = TextEditingController(text: _controller.nomeUsuario);
-    
-    _controller.addListener(() {
+
+    _nomeController = TextEditingController(
+      text: _controller.nomeUsuario,
+    );
+
+    _controller.addListener(_atualizarTela);
+    _usuarioController.addListener(_atualizarTela);
+  }
+
+  void _atualizarTela() {
+    if (mounted) {
       setState(() {});
-    });
+    }
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_atualizarTela);
+    _usuarioController.removeListener(_atualizarTela);
+
     _nomeController.dispose();
     _controller.dispose();
+
     super.dispose();
   }
 
   void _aoClicarSalvar() {
-    String? erro = _controller.atualizarPerfil(_nomeController.text);
+    final erro = _controller.atualizarPerfil(
+      _nomeController.text,
+    );
 
     if (erro != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -42,7 +63,10 @@ class _PerfilViewState extends State<PerfilView> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Sucesso! Perfil atualizado para: ${_controller.nomeUsuario}'),
+          content: Text(
+            'Sucesso! Perfil atualizado para: '
+            '${_controller.nomeUsuario}',
+          ),
           backgroundColor: Colors.green,
         ),
       );
@@ -54,24 +78,12 @@ class _PerfilViewState extends State<PerfilView> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
       appBar: AppBar(
+        title: const Text('Perfil do Usuário'),
         backgroundColor: const Color(0xFF4C6EF5),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'PERFIL DO USUÁRIO',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
-        ),
-        centerTitle: true,
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             const SizedBox(height: 10),
@@ -99,6 +111,7 @@ class _PerfilViewState extends State<PerfilView> {
             const SizedBox(height: 16),
             Text(
               _controller.nomeUsuario,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -108,11 +121,16 @@ class _PerfilViewState extends State<PerfilView> {
             const SizedBox(height: 32),
 
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
               decoration: BoxDecoration(
                 color: const Color(0xFFE5E7EB),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFD1D5DB)),
+                border: Border.all(
+                  color: const Color(0xFFD1D5DB),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,9 +152,15 @@ class _PerfilViewState extends State<PerfilView> {
                     ),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
-                      suffixIcon: Icon(Icons.edit, color: Color(0xFF4C6EF5), size: 20),
+                      suffixIcon: Icon(
+                        Icons.edit,
+                        color: Color(0xFF4C6EF5),
+                        size: 20,
+                      ),
                       isDense: true,
-                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 8,
+                      ),
                     ),
                   ),
                 ],
@@ -145,11 +169,16 @@ class _PerfilViewState extends State<PerfilView> {
             const SizedBox(height: 16),
 
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
               decoration: BoxDecoration(
                 color: const Color(0xFFE5E7EB),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFD1D5DB)),
+                border: Border.all(
+                  color: const Color(0xFFD1D5DB),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,17 +193,24 @@ class _PerfilViewState extends State<PerfilView> {
                   ),
                   const SizedBox(height: 6),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        _controller.emailUsuario,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF4B5563),
+                      Expanded(
+                        child: Text(
+                          _controller.emailUsuario,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF4B5563),
+                          ),
                         ),
                       ),
-                      const Icon(Icons.lock, color: Color(0xFF6B7280), size: 18),
+                      const Icon(
+                        Icons.lock,
+                        color: Color(0xFF6B7280),
+                        size: 18,
+                      ),
                     ],
                   ),
                 ],
@@ -200,7 +236,7 @@ class _PerfilViewState extends State<PerfilView> {
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    letterSpacing: 1.0,
+                    letterSpacing: 1,
                   ),
                 ),
               ),
@@ -215,7 +251,7 @@ class _PerfilViewState extends State<PerfilView> {
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF4C6EF5),
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
             ),

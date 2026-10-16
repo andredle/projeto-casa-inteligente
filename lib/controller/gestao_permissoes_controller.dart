@@ -1,8 +1,10 @@
+
 import 'package:flutter/material.dart';
 
 class MembroPermissaoModel {
   final String nome;
   final String papelOriginal;
+
   bool isEditando;
   bool controleGeral;
   bool seguranca;
@@ -11,73 +13,78 @@ class MembroPermissaoModel {
 
   MembroPermissaoModel({
     required this.nome,
-    required this.papelOriginal,
-    required this.isEditando,
-    required this.controleGeral,
-    required this.seguranca,
-    required this.gerenciamento,
-    required this.funcao,
+    this.papelOriginal = 'Membro da Família',
+    this.isEditando = false,
+    this.controleGeral = true,
+    this.seguranca = false,
+    this.gerenciamento = false,
+    this.funcao = 'Membro Comum',
   });
 }
 
 class GestaoPermissoesController extends ChangeNotifier {
-  // Informação do Administrador Principal
-  final String user1Funcao = 'Administrador - Acesso Total';
+  final String nomeAdministrador;
+  final List<MembroPermissaoModel> _membros = [];
 
-  // Lista gerida de membros editáveis (User 2 e User 3)
-  final List<MembroPermissaoModel> _membros = [
-    MembroPermissaoModel(
-      nome: 'User 2',
-      papelOriginal: 'Membro da Família',
-      isEditando: false,
-      controleGeral: true,
-      seguranca: true,
-      gerenciamento: false,
-      funcao: 'Membro Sênior',
-    ),
-    MembroPermissaoModel(
-      nome: 'User 3',
-      papelOriginal: 'Membro da Família',
-      isEditando: false,
-      controleGeral: true,
-      seguranca: false,
-      gerenciamento: false,
-      funcao: 'Criança / Restrito',
-    ),
-  ];
+  GestaoPermissoesController({
+    required List<String> membros,
+    required this.nomeAdministrador,
+  }) {
+    for (final nome in membros) {
+      // Não adiciona o administrador à lista editável.
+      if (nome == '$nomeAdministrador (você)' ||
+          nome == nomeAdministrador) {
+        continue;
+      }
+
+      _membros.add(MembroPermissaoModel(nome: nome));
+    }
+  }
+
+  String get user1Funcao => 'Administrador - Acesso Total';
 
   List<MembroPermissaoModel> get membros => _membros;
 
   void alternarModoEdicao(int index) {
+    if (!_indiceValido(index)) return;
+
     _membros[index].isEditando = !_membros[index].isEditando;
     notifyListeners();
   }
 
   void setControleGeral(int index, bool valor) {
-    if (_membros[index].isEditando) {
-      _membros[index].controleGeral = valor;
-      notifyListeners();
-    }
+    if (!_podeEditar(index)) return;
+
+    _membros[index].controleGeral = valor;
+    notifyListeners();
   }
 
   void setSeguranca(int index, bool valor) {
-    if (_membros[index].isEditando) {
-      _membros[index].seguranca = valor;
-      notifyListeners();
-    }
+    if (!_podeEditar(index)) return;
+
+    _membros[index].seguranca = valor;
+    notifyListeners();
   }
 
   void setGerenciamento(int index, bool valor) {
-    if (_membros[index].isEditando) {
-      _membros[index].gerenciamento = valor;
-      notifyListeners();
-    }
+    if (!_podeEditar(index)) return;
+
+    _membros[index].gerenciamento = valor;
+    notifyListeners();
   }
 
   void setFuncao(int index, String novaFuncao) {
-    if (_membros[index].isEditando) {
-      _membros[index].funcao = novaFuncao;
-      notifyListeners();
-    }
+    if (!_podeEditar(index)) return;
+
+    _membros[index].funcao = novaFuncao;
+    notifyListeners();
+  }
+
+  bool _indiceValido(int index) {
+    return index >= 0 && index < _membros.length;
+  }
+
+  bool _podeEditar(int index) {
+    return _indiceValido(index) && _membros[index].isEditando;
   }
 }

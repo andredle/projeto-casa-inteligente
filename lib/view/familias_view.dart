@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
+
 import '../controller/familias_controller.dart';
+import 'gestao_permissoes_view.dart';
 
 class FamiliasView extends StatefulWidget {
   const FamiliasView({super.key});
@@ -10,7 +12,7 @@ class FamiliasView extends StatefulWidget {
 }
 
 class _FamiliasViewState extends State<FamiliasView> {
-  static const Color corPrincipal = Color(0xFF167D83);
+  static const Color corPrincipal = Color(0xFF4C6EF5);
   static const Color corCartao = Color(0xFFB9C7FF);
   static const Color corExpandido = Color(0xFFD6D6D6);
 
@@ -22,9 +24,10 @@ class _FamiliasViewState extends State<FamiliasView> {
     super.didChangeDependencies();
 
     if (!inicializado) {
-      final nomeUsuario =
-          ModalRoute.of(context)?.settings.arguments as String? ??
-              'Usuário teste';
+      final argumentos = ModalRoute.of(context)?.settings.arguments;
+      final nomeUsuario = argumentos is String
+          ? argumentos
+          : 'Usuário teste';
 
       controller = FamiliasController(
         nomeUsuario: nomeUsuario,
@@ -169,6 +172,32 @@ class _FamiliasViewState extends State<FamiliasView> {
     );
   }
 
+  
+  void abrirGestaoPermissoes(int index) {
+    final familia = controller.familias[index];
+
+    if (familia['admin'] != true) {
+      mostrarMensagem(
+        'Somente o administrador pode gerenciar permissões.',
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const GestaoPermissoesView(),
+        settings: RouteSettings(
+          arguments: {
+            'nome': familia['nome'],
+            'membros': List<String>.from(familia['membros']),
+          },
+        ),
+      ),
+    );
+  }
+
+
   Future<void> gerenciarFamilia(int index) async {
     if (controller.familias[index]['admin'] != true) {
       mostrarMensagem(
@@ -308,7 +337,6 @@ class _FamiliasViewState extends State<FamiliasView> {
         title: const Text('Famílias'),
         backgroundColor: corPrincipal,
         foregroundColor: Colors.white,
-        centerTitle: true,
       ),
       body: AnimatedBuilder(
         animation: controller,
@@ -318,10 +346,13 @@ class _FamiliasViewState extends State<FamiliasView> {
             itemCount: controller.familias.length,
             itemBuilder: (context, index) {
               final familia = controller.familias[index];
-              final bool expandida = familia['expandida'];
+              final bool expandida = familia['expandida'] as bool;
 
               final List<String> membros =
                   List<String>.from(familia['membros']);
+
+              final bool souAdministrador =
+                  familia['admin'] == true;
 
               return Card(
                 color: expandida ? corExpandido : corCartao,
@@ -361,14 +392,14 @@ class _FamiliasViewState extends State<FamiliasView> {
                                     children: [
                                       Expanded(
                                         child: Text(
-                                          familia['nome'],
+                                          familia['nome'] as String,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
                                           ),
                                         ),
                                       ),
-                                      if (familia['admin'] == true)
+                                      if (souAdministrador)
                                         const Icon(
                                           Icons.workspace_premium,
                                           color: Colors.orange,
@@ -378,7 +409,7 @@ class _FamiliasViewState extends State<FamiliasView> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    familia['resumo'],
+                                    familia['resumo'] as String,
                                     style: const TextStyle(
                                       fontSize: 12,
                                     ),
@@ -426,25 +457,40 @@ class _FamiliasViewState extends State<FamiliasView> {
                         children: [
                           IconButton(
                             tooltip: 'Configurações',
-                            onPressed: () => configurarFamilia(index),
+                            onPressed: souAdministrador
+                                ? () => configurarFamilia(index)
+                                : null,
                             icon: const Icon(
                               Icons.settings_outlined,
                             ),
                           ),
                           IconButton(
                             tooltip: 'Adicionar membro',
-                            onPressed: () => adicionarMembroDialog(index),
+                            onPressed: souAdministrador
+                                ? () => adicionarMembroDialog(index)
+                                : null,
                             icon: const Icon(
                               Icons.person_add_alt_1,
                             ),
                           ),
                           IconButton(
                             tooltip: 'Gerenciar família',
-                            onPressed: () => gerenciarFamilia(index),
+                            onPressed: souAdministrador
+                                ? () => gerenciarFamilia(index)
+                                : null,
                             icon: const Icon(
                               Icons.manage_accounts_outlined,
                             ),
                           ),
+                          if (souAdministrador)
+                            IconButton(
+                              tooltip: 'Gestão de permissões',
+                              onPressed: () =>
+                                  abrirGestaoPermissoes(index),
+                              icon: const Icon(
+                                Icons.admin_panel_settings_outlined,
+                              ),
+                            ),
                         ],
                       ),
                     ],

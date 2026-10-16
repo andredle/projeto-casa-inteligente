@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
+
 import '../controller/home_controller.dart';
+import '../controller/usuario_controller.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -10,14 +12,49 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  static const corPrincipal = Color(0xFF167D83);
+  static const corPrincipal = Color(0xFF4C6EF5);
   static const corLigado = Color(0xFFB9C7FF);
   static const corDesligado = Color(0xFFD6D6D6);
 
   final HomeController controller = HomeController();
+  final UsuarioController _usuarioController =
+      UsuarioController.instance;
+
+  bool _nomeInicializado = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _usuarioController.addListener(_atualizarTela);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_nomeInicializado) {
+      final argumentos = ModalRoute.of(context)?.settings.arguments;
+      final nomeRecebido =
+          argumentos is String ? argumentos : null;
+
+      if (nomeRecebido != null &&
+          nomeRecebido.trim().isNotEmpty) {
+        _usuarioController.atualizarNome(nomeRecebido);
+      }
+
+      _nomeInicializado = true;
+    }
+  }
+
+  void _atualizarTela() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   void dispose() {
+    _usuarioController.removeListener(_atualizarTela);
     controller.dispose();
     super.dispose();
   }
@@ -54,6 +91,8 @@ class _HomeViewState extends State<HomeView> {
     );
 
     if (confirmou == true && mounted) {
+      _usuarioController.desautenticar();
+
       Navigator.pushNamedAndRemoveUntil(
         context,
         'login',
@@ -64,9 +103,7 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    final nomeUsuario =
-        ModalRoute.of(context)?.settings.arguments as String? ??
-            'Usuário teste';
+    final nomeUsuario = _usuarioController.nomeUsuario;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F5FA),
@@ -92,25 +129,35 @@ class _HomeViewState extends State<HomeView> {
       drawer: Drawer(
         child: ListView(
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
+            DrawerHeader(
+              decoration: const BoxDecoration(
                 color: corPrincipal,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.home,
                     size: 45,
                     color: Colors.white,
                   ),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Text(
                     'Smart Home',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    nomeUsuario,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
                     ),
                   ),
                 ],
@@ -119,7 +166,9 @@ class _HomeViewState extends State<HomeView> {
             ListTile(
               leading: const Icon(Icons.home_outlined),
               title: const Text('Início'),
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                Navigator.pop(context);
+              },
             ),
             ListTile(
               leading: const Icon(Icons.meeting_room_outlined),
@@ -139,6 +188,14 @@ class _HomeViewState extends State<HomeView> {
                   'familias',
                   arguments: nomeUsuario,
                 );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.auto_awesome_outlined),
+              title: const Text('Rotinas'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, 'rotinas');
               },
             ),
             ListTile(
@@ -205,21 +262,16 @@ class _HomeViewState extends State<HomeView> {
                   context,
                   'Perfil',
                   Icons.person_outline,
-                  () => Navigator.pushNamed(
-                    context,
-                    'perfil',
-                  ),
+                  () => Navigator.pushNamed(context, 'perfil'),
                 ),
+                const SizedBox(width: 8),
                 _atalho(
                   context,
                   'Cômodos',
                   Icons.meeting_room_outlined,
-                  () => Navigator.pushNamed(
-                    context,
-                    'comodos',
-                  ),
+                  () => Navigator.pushNamed(context, 'comodos'),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 _atalho(
                   context,
                   'Famílias',
@@ -229,6 +281,13 @@ class _HomeViewState extends State<HomeView> {
                     'familias',
                     arguments: nomeUsuario,
                   ),
+                ),
+                const SizedBox(width: 8),
+                _atalho(
+                  context,
+                  'Rotinas',
+                  Icons.auto_awesome_outlined,
+                  () => Navigator.pushNamed(context, 'rotinas'),
                 ),
               ],
             ),
@@ -259,7 +318,8 @@ class _HomeViewState extends State<HomeView> {
                     final dispositivo =
                         controller.dispositivos[index];
 
-                    final bool ligado = dispositivo['ligado'];
+                    final bool ligado =
+                        dispositivo['ligado'] as bool;
 
                     return Container(
                       padding: const EdgeInsets.all(10),
@@ -366,7 +426,7 @@ class _HomeViewState extends State<HomeView> {
         child: Container(
           padding: const EdgeInsets.symmetric(
             vertical: 18,
-            horizontal: 4,
+            horizontal: 2,
           ),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -380,13 +440,15 @@ class _HomeViewState extends State<HomeView> {
               Icon(
                 icone,
                 color: corPrincipal,
-                size: 27,
+                size: 25,
               ),
               const SizedBox(height: 8),
               Text(
                 titulo,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 11),
               ),
             ],
           ),
