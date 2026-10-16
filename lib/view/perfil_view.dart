@@ -8,11 +8,9 @@ class PerfilView extends StatefulWidget {
 }
 
 class _PerfilViewState extends State<PerfilView> {
-  // Controlador para o campo de nome que pode ser editado
   final TextEditingController _nomeController =
       TextEditingController(text: 'User Teste');
 
-  // E-mail fixo institucional (apenas visualização conforme RF005)[cite: 4]
   final String _emailUsuario = 'userteste@teste.com';
 
   @override
@@ -24,7 +22,6 @@ class _PerfilViewState extends State<PerfilView> {
   void _salvarAlteracoes() {
     String novoNome = _nomeController.text.trim();
 
-    // 1. Verificar se o campo Nome foi preenchido[cite: 4]
     if (novoNome.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -35,7 +32,6 @@ class _PerfilViewState extends State<PerfilView> {
       return;
     }
 
-    // 2. Verificar se o nome informado possui uma quantidade mínima de 4 caracteres
     if (novoNome.length < 4) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -46,10 +42,7 @@ class _PerfilViewState extends State<PerfilView> {
       return;
     }
 
-    // 4. Caso as informações sejam válidas: atualizar dados e exibir confirmação[cite: 4]
-    // 5. O novo nome informado passa a ser utilizado nas demais telas (simulado via setState/feedback)
     setState(() {
-      // Atualiza o estado local da tela
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -86,7 +79,6 @@ class _PerfilViewState extends State<PerfilView> {
         child: Column(
           children: [
             const SizedBox(height: 10),
-            // Avatar do Usuário
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -109,7 +101,6 @@ class _PerfilViewState extends State<PerfilView> {
               ),
             ),
             const SizedBox(height: 16),
-            // Nome Atualizado Dinamicamente
             Text(
               _nomeController.text,
               style: const TextStyle(
@@ -120,7 +111,6 @@ class _PerfilViewState extends State<PerfilView> {
             ),
             const SizedBox(height: 32),
 
-            // Campo Editável: Nome do Usuário
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -158,7 +148,6 @@ class _PerfilViewState extends State<PerfilView> {
             ),
             const SizedBox(height: 16),
 
-            // Campo Bloqueado: E-mail (Apenas Visualização - RF005)[cite: 4]
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
@@ -197,7 +186,6 @@ class _PerfilViewState extends State<PerfilView> {
             ),
             const SizedBox(height: 32),
 
-            // Botão Salvar Alterações
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -223,7 +211,6 @@ class _PerfilViewState extends State<PerfilView> {
             ),
             const SizedBox(height: 16),
 
-            // Opção Cancelar
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text(
