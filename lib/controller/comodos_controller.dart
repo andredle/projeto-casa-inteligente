@@ -6,7 +6,7 @@ class ComodosController extends ChangeNotifier {
     {
       'nome': 'Sala de estar',
       'icone': Icons.weekend_outlined,
-      'dispositivos': [
+      'dispositivos': <Map<String, dynamic>>[
         {'nome': 'Lâmpada principal', 'tipo': 'Luz', 'ligado': true},
         {'nome': 'Luminária', 'tipo': 'Luz', 'ligado': false},
         {'nome': 'Ventilador', 'tipo': 'Ventilação', 'ligado': true},
@@ -18,7 +18,7 @@ class ComodosController extends ChangeNotifier {
     {
       'nome': 'Cozinha',
       'icone': Icons.kitchen_outlined,
-      'dispositivos': [
+      'dispositivos': <Map<String, dynamic>>[
         {'nome': 'Luz principal', 'tipo': 'Luz', 'ligado': true},
         {'nome': 'Luz da bancada', 'tipo': 'Luz', 'ligado': false},
         {'nome': 'Geladeira', 'tipo': 'Eletrodoméstico', 'ligado': true},
@@ -28,7 +28,7 @@ class ComodosController extends ChangeNotifier {
     {
       'nome': 'Hall',
       'icone': Icons.door_front_door_outlined,
-      'dispositivos': [
+      'dispositivos': <Map<String, dynamic>>[
         {'nome': 'Luz do hall', 'tipo': 'Luz', 'ligado': true},
         {'nome': 'Sensor de presença', 'tipo': 'Sensor', 'ligado': false},
         {'nome': 'Luz auxiliar', 'tipo': 'Luz', 'ligado': false},
@@ -37,7 +37,7 @@ class ComodosController extends ChangeNotifier {
     {
       'nome': 'Varanda',
       'icone': Icons.balcony,
-      'dispositivos': [
+      'dispositivos': <Map<String, dynamic>>[
         {'nome': 'Luz externa', 'tipo': 'Luz', 'ligado': false},
         {'nome': 'Ventilador', 'tipo': 'Ventilação', 'ligado': false},
       ],
@@ -45,7 +45,7 @@ class ComodosController extends ChangeNotifier {
     {
       'nome': 'Quarto 1',
       'icone': Icons.bed_outlined,
-      'dispositivos': [
+      'dispositivos': <Map<String, dynamic>>[
         {'nome': 'Luz principal', 'tipo': 'Luz', 'ligado': true},
         {'nome': 'Abajur', 'tipo': 'Luz', 'ligado': true},
         {'nome': 'Ar-condicionado', 'tipo': 'Climatização', 'ligado': false},
@@ -54,7 +54,7 @@ class ComodosController extends ChangeNotifier {
     {
       'nome': 'Escritório',
       'icone': Icons.computer_outlined,
-      'dispositivos': [
+      'dispositivos': <Map<String, dynamic>>[
         {'nome': 'Luz principal', 'tipo': 'Luz', 'ligado': false},
         {'nome': 'Computador', 'tipo': 'Eletrônico', 'ligado': false},
         {'nome': 'Monitor', 'tipo': 'Eletrônico', 'ligado': false},
@@ -74,9 +74,14 @@ class ComodosController extends ChangeNotifier {
     {'nome': 'Outro', 'icone': Icons.meeting_room_outlined},
   ];
 
+  List<Map<String, dynamic>> _dispositivosDoComodo(int index) {
+    return comodos[index]['dispositivos'] as List<Map<String, dynamic>>;
+  }
+
   int quantidadeLigados(int index) {
-    final dispositivos =
-        comodos[index]['dispositivos'] as List<Map<String, dynamic>>;
+    if (index < 0 || index >= comodos.length) return 0;
+
+    final dispositivos = _dispositivosDoComodo(index);
 
     return dispositivos.where((d) => d['ligado'] == true).length;
   }
@@ -138,8 +143,7 @@ class ComodosController extends ChangeNotifier {
   void alternarDispositivo(int comodoIndex, int dispositivoIndex) {
     if (comodoIndex < 0 || comodoIndex >= comodos.length) return;
 
-    final dispositivos =
-        comodos[comodoIndex]['dispositivos'] as List<Map<String, dynamic>>;
+    final dispositivos = _dispositivosDoComodo(comodoIndex);
 
     if (dispositivoIndex < 0 || dispositivoIndex >= dispositivos.length) {
       return;
@@ -156,17 +160,16 @@ class ComodosController extends ChangeNotifier {
       return false;
     }
 
-    final dispositivos =
-        comodos[index]['dispositivos'] as List<Map<String, dynamic>>;
+    final dispositivos = _dispositivosDoComodo(index);
+    final nomeLimpo = nome.trim().toLowerCase();
 
     final existe = dispositivos.any(
-      (d) =>
-          (d['nome'] as String).toLowerCase() == nome.trim().toLowerCase(),
+      (d) => (d['nome'] as String).trim().toLowerCase() == nomeLimpo,
     );
 
     if (existe) return false;
 
-    dispositivos.add({
+    dispositivos.add(<String, dynamic>{
       'nome': nome.trim(),
       'tipo': tipo,
       'ligado': false,
@@ -179,8 +182,7 @@ class ComodosController extends ChangeNotifier {
   void excluirDispositivo(int comodoIndex, int dispositivoIndex) {
     if (comodoIndex < 0 || comodoIndex >= comodos.length) return;
 
-    final dispositivos =
-        comodos[comodoIndex]['dispositivos'] as List<Map<String, dynamic>>;
+    final dispositivos = _dispositivosDoComodo(comodoIndex);
 
     if (dispositivoIndex < 0 || dispositivoIndex >= dispositivos.length) {
       return;

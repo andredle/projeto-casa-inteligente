@@ -10,7 +10,7 @@ class ComodosView extends StatefulWidget {
 }
 
 class _ComodosViewState extends State<ComodosView> {
-  static const corPrincipal = Color(0xFF4C6EF5);
+  static const Color corPrincipal = Color(0xFF4C6EF5);
 
   late final ComodosController controller;
 
@@ -36,6 +36,8 @@ class _ComodosViewState extends State<ComodosView> {
     IconData iconeSelecionado = index == null
         ? Icons.meeting_room_outlined
         : controller.comodos[index]['icone'] as IconData;
+
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     final resultado = await showDialog<bool>(
       context: context,
@@ -69,7 +71,9 @@ class _ComodosViewState extends State<ComodosView> {
                       label: Icon(icone),
                       selected: iconeSelecionado == icone,
                       onSelected: (_) {
-                        atualizarDialog(() => iconeSelecionado = icone);
+                        atualizarDialog(() {
+                          iconeSelecionado = icone;
+                        });
                       },
                     );
                   }).toList(),
@@ -100,7 +104,7 @@ class _ComodosViewState extends State<ComodosView> {
                       );
 
                 if (!sucesso) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
                     const SnackBar(
                       content: Text(
                         'Informe um nome válido e não repetido.',
@@ -122,7 +126,7 @@ class _ComodosViewState extends State<ComodosView> {
     nomeController.dispose();
 
     if (resultado == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Cômodo salvo com sucesso!')),
       );
     }
@@ -133,16 +137,16 @@ class _ComodosViewState extends State<ComodosView> {
 
     final confirmar = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Excluir cômodo'),
         content: Text('Deseja excluir "$nome" e seus dispositivos?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text(
               'Excluir',
               style: TextStyle(color: Colors.red),
@@ -172,7 +176,10 @@ class _ComodosViewState extends State<ComodosView> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
+              leading: const Icon(
+                Icons.delete_outline,
+                color: Colors.red,
+              ),
               title: const Text('Excluir cômodo'),
               onTap: () {
                 Navigator.pop(context);
@@ -185,8 +192,15 @@ class _ComodosViewState extends State<ComodosView> {
     );
   }
 
+  
   Future<void> formularioDispositivo(int comodoIndex) async {
+    if (comodoIndex < 0 || comodoIndex >= controller.comodos.length) {
+      return;
+    }
+
     final nomeController = TextEditingController();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     String tipoSelecionado = 'Luz';
 
     const tipos = [
@@ -202,39 +216,46 @@ class _ComodosViewState extends State<ComodosView> {
     final resultado = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, atualizarDialog) => AlertDialog(
+        builder: (dialogContext, atualizarDialog) => AlertDialog(
           title: const Text('Novo dispositivo'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nomeController,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Nome do dispositivo',
-                  border: OutlineInputBorder(),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nomeController,
+                  autofocus: true,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: const InputDecoration(
+                    labelText: 'Nome do dispositivo',
+                    hintText: 'Ex.: Lâmpada da mesa',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: tipoSelecionado,
-                decoration: const InputDecoration(
-                  labelText: 'Tipo',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  initialValue: tipoSelecionado,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Tipo',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: tipos.map((tipo) {
+                    return DropdownMenuItem<String>(
+                      value: tipo,
+                      child: Text(tipo),
+                    );
+                  }).toList(),
+                  onChanged: (valor) {
+                    if (valor != null) {
+                      atualizarDialog(() {
+                        tipoSelecionado = valor;
+                      });
+                    }
+                  },
                 ),
-                items: tipos.map((tipo) {
-                  return DropdownMenuItem(
-                    value: tipo,
-                    child: Text(tipo),
-                  );
-                }).toList(),
-                onChanged: (valor) {
-                  if (valor != null) {
-                    atualizarDialog(() => tipoSelecionado = valor);
-                  }
-                },
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -242,18 +263,36 @@ class _ComodosViewState extends State<ComodosView> {
               child: const Text('Cancelar'),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: corPrincipal,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () {
+                final nome = nomeController.text.trim();
+
+                if (nome.isEmpty) {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Digite um nome para o dispositivo.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
                 final sucesso = controller.adicionarDispositivo(
                   comodoIndex,
-                  nomeController.text,
+                  nome,
                   tipoSelecionado,
                 );
 
                 if (!sucesso) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     const SnackBar(
                       content: Text(
-                        'Informe um nome válido e não repetido.',
+                        'Não foi possível adicionar. '
+                        'Verifique se o nome já existe.',
                       ),
                     ),
                   );
@@ -271,19 +310,32 @@ class _ComodosViewState extends State<ComodosView> {
 
     nomeController.dispose();
 
-    if (resultado == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dispositivo adicionado!')),
+    if (!mounted) return;
+
+    if (resultado == true) {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('Dispositivo adicionado com sucesso!'),
+        ),
       );
     }
   }
 
+
   Future<void> mostrarDispositivos(int index) async {
+    if (index < 0 || index >= controller.comodos.length) return;
+
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AnimatedBuilder(
         animation: controller,
         builder: (context, _) {
+          if (index >= controller.comodos.length) {
+            return const AlertDialog(
+              content: Text('Este cômodo não está mais disponível.'),
+            );
+          }
+
           final comodo = controller.comodos[index];
           final dispositivos =
               comodo['dispositivos'] as List<Map<String, dynamic>>;
@@ -300,7 +352,9 @@ class _ComodosViewState extends State<ComodosView> {
                   children: [
                     Text(
                       '$ligados de ${dispositivos.length} dispositivos ligados',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     if (dispositivos.isEmpty)
@@ -314,8 +368,10 @@ class _ComodosViewState extends State<ComodosView> {
                           shrinkWrap: true,
                           itemCount: dispositivos.length,
                           itemBuilder: (context, dispositivoIndex) {
-                            final dispositivo = dispositivos[dispositivoIndex];
-                            final ligado = dispositivo['ligado'] as bool;
+                            final dispositivo =
+                                dispositivos[dispositivoIndex];
+                            final ligado =
+                                dispositivo['ligado'] as bool;
 
                             return ListTile(
                               contentPadding: EdgeInsets.zero,
@@ -325,7 +381,9 @@ class _ComodosViewState extends State<ComodosView> {
                                 ),
                                 color: ligado ? corPrincipal : Colors.grey,
                               ),
-                              title: Text(dispositivo['nome'] as String),
+                              title: Text(
+                                dispositivo['nome'] as String,
+                              ),
                               subtitle: Text(
                                 ligado ? 'Ligado' : 'Desligado',
                               ),
@@ -402,7 +460,10 @@ class _ComodosViewState extends State<ComodosView> {
         builder: (context, _) {
           if (controller.comodos.isEmpty) {
             return const Center(
-              child: Text('Nenhum cômodo cadastrado.\nToque em + para adicionar.'),
+              child: Text(
+                'Nenhum cômodo cadastrado.\nToque em + para adicionar.',
+                textAlign: TextAlign.center,
+              ),
             );
           }
 
