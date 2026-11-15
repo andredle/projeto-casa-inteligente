@@ -43,3 +43,22 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Arquivos com informações sensíveis
+.env
+.env.*
+!.env.example
+
+# Credenciais do Firebase
+serviceAccountKey.json
+*service-account*.json
+
+# Chaves privadas
+*.pem
+*.key
+
+# Credenciais Android
+android/key.properties
+
+# Configurações locais do Firebase CLI
+.firebase/

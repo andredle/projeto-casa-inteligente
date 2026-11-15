@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "779656266904",
+    "project_id": "casa-inteligente-ads",
+    "storage_bucket": "casa-inteligente-ads.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:779656266904:android:523b7eb7e1e6b84a667ced",
+        "android_client_info": {
+          "package_name": "com.example.app_projeto"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQUM3F52HNiyv8CqTla3HJTgvBDUtLzek"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

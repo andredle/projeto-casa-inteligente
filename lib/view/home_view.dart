@@ -59,47 +59,62 @@ class _HomeViewState extends State<HomeView> {
     super.dispose();
   }
 
-  Future<void> _confirmarLogout() async {
-    final confirmou = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Sair da conta'),
-          content: const Text(
-            'Tem certeza de que deseja sair?',
+  
+Future<void> _confirmarLogout() async {
+  final confirmou = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Text('Sair da conta'),
+        content: const Text(
+          'Tem certeza de que deseja sair?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext, false);
+            },
+            child: const Text('Cancelar'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, false);
-              },
-              child: const Text('Cancelar'),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: corPrincipal,
+              foregroundColor: Colors.white,
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: corPrincipal,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.pop(dialogContext, true);
-              },
-              child: const Text('Sair'),
-            ),
-          ],
-        );
-      },
-    );
+            onPressed: () {
+              Navigator.pop(dialogContext, true);
+            },
+            child: const Text('Sair'),
+          ),
+        ],
+      );
+    },
+  );
 
-    if (confirmou == true && mounted) {
-      _usuarioController.desautenticar();
+  if (confirmou == true && mounted) {
+    try {
+      await _usuarioController.desautenticar();
+
+      if (!mounted) return;
 
       Navigator.pushNamedAndRemoveUntil(
         context,
         'login',
         (route) => false,
       );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível sair da conta.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../controller/comodos_controller.dart';
 
 class ComodosView extends StatefulWidget {
@@ -14,10 +16,15 @@ class _ComodosViewState extends State<ComodosView> {
 
   late final ComodosController controller;
 
+  late final Stream<QuerySnapshot<Map<String, dynamic>>>
+      _streamComodos;
+
   @override
   void initState() {
     super.initState();
+
     controller = ComodosController();
+    _streamComodos = controller.streamComodos;
   }
 
   @override
@@ -91,25 +98,26 @@ class _ComodosViewState extends State<ComodosView> {
                 backgroundColor: corPrincipal,
                 foregroundColor: Colors.white,
               ),
-              onPressed: () {
+              onPressed: () async {
                 final sucesso = index == null
-                    ? controller.adicionarComodo(
+                    ? await controller.adicionarComodo(
                         nomeController.text,
                         iconeSelecionado,
                       )
-                    : controller.editarComodo(
+                    : await controller.editarComodo(
                         index,
                         nomeController.text,
                         iconeSelecionado,
                       );
 
+                if (!dialogContext.mounted) return;
+
                 if (!sucesso) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Informe um nome válido e não repetido.',
-                      ),
-                    ),
+                  final mensagem = controller.erroCarregamento ??
+                      'Informe um nome válido e não repetido.';
+
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(content: Text(mensagem)),
                   );
                   return;
                 }
@@ -133,6 +141,8 @@ class _ComodosViewState extends State<ComodosView> {
   }
 
   Future<void> excluirComodo(int index) async {
+    if (index < 0 || index >= controller.comodos.length) return;
+
     final nome = controller.comodos[index]['nome'] as String;
 
     final confirmar = await showDialog<bool>(
@@ -157,7 +167,7 @@ class _ComodosViewState extends State<ComodosView> {
     );
 
     if (confirmar == true && mounted) {
-      controller.excluirComodo(index);
+      await controller.excluirComodo(index);
     }
   }
 
@@ -192,9 +202,9 @@ class _ComodosViewState extends State<ComodosView> {
     );
   }
 
-  
   Future<void> formularioDispositivo(int comodoIndex) async {
-    if (comodoIndex < 0 || comodoIndex >= controller.comodos.length) {
+    if (comodoIndex < 0 ||
+        comodoIndex >= controller.comodos.length) {
       return;
     }
 
@@ -267,7 +277,7 @@ class _ComodosViewState extends State<ComodosView> {
                 backgroundColor: corPrincipal,
                 foregroundColor: Colors.white,
               ),
-              onPressed: () {
+              onPressed: () async {
                 final nome = nomeController.text.trim();
 
                 if (nome.isEmpty) {
@@ -281,20 +291,21 @@ class _ComodosViewState extends State<ComodosView> {
                   return;
                 }
 
-                final sucesso = controller.adicionarDispositivo(
+                final sucesso = await controller.adicionarDispositivo(
                   comodoIndex,
                   nome,
                   tipoSelecionado,
                 );
 
+                if (!dialogContext.mounted) return;
+
                 if (!sucesso) {
+                  final mensagem = controller.erroCarregamento ??
+                      'Não foi possível adicionar. '
+                          'Verifique se o nome já existe.';
+
                   scaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Não foi possível adicionar. '
-                        'Verifique se o nome já existe.',
-                      ),
-                    ),
+                    SnackBar(content: Text(mensagem)),
                   );
                   return;
                 }
@@ -320,7 +331,6 @@ class _ComodosViewState extends State<ComodosView> {
       );
     }
   }
-
 
   Future<void> mostrarDispositivos(int index) async {
     if (index < 0 || index >= controller.comodos.length) return;
@@ -393,17 +403,17 @@ class _ComodosViewState extends State<ComodosView> {
                                   Switch(
                                     value: ligado,
                                     activeThumbColor: corPrincipal,
-                                    onChanged: (_) {
-                                      controller.alternarDispositivo(
+                                    onChanged: (_) async {
+                                      await controller.alternarDispositivo(
                                         index,
                                         dispositivoIndex,
                                       );
                                     },
                                   ),
                                   PopupMenuButton<String>(
-                                    onSelected: (opcao) {
+                                    onSelected: (opcao) async {
                                       if (opcao == 'excluir') {
-                                        controller.excluirDispositivo(
+                                        await controller.excluirDispositivo(
                                           index,
                                           dispositivoIndex,
                                         );
@@ -455,9 +465,47 @@ class _ComodosViewState extends State<ComodosView> {
         backgroundColor: corPrincipal,
         foregroundColor: Colors.white,
       ),
-      body: AnimatedBuilder(
-        animation: controller,
-        builder: (context, _) {
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: _streamComodos,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Não foi possível carregar os cômodos.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: controller.carregarComodos,
+                      child: const Text('Tentar novamente'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          if (!snapshot.hasData) {
+            return const Center(
+              child: Text('Nenhum cômodo encontrado.'),
+            );
+          }
+
+          // Atualiza a lista local com os dados recebidos em tempo real.
+          controller.atualizarComodos(snapshot.data!.docs);
+
           if (controller.comodos.isEmpty) {
             return const Center(
               child: Text(

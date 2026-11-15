@@ -1,7 +1,6 @@
 
 import 'package:flutter/material.dart';
 import '../controller/login_controller.dart';
-import '../controller/usuario_controller.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -27,7 +26,7 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
-  void entrar() {
+  Future<void> entrar() async {
     final erros = controller.validarLogin(
       email: email.text,
       senha: senha.text,
@@ -42,10 +41,22 @@ class _LoginViewState extends State<LoginView> {
       return;
     }
 
-    UsuarioController.instance
-        .atualizarEmail(email.text.trim());
+    final resultado = await controller.entrar(
+      email: email.text,
+      senha: senha.text,
+    );
 
-    UsuarioController.instance.autenticar();
+    if (!mounted) return;
+
+    if (resultado != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(resultado),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     Navigator.pushNamedAndRemoveUntil(
       context,
@@ -58,127 +69,137 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     const corPrincipal = Color(0xFF4C6EF5);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9F5FA),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(
-                  Icons.home_outlined,
-                  size: 80,
-                  color: corPrincipal,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Bem-vindo!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Entre na sua conta para continuar.',
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-
-                const Text('EMAIL'),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: email,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: 'Digite seu e-mail',
-                    prefixIcon: const Icon(
-                      Icons.email_outlined,
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF9F5FA),
+          body: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Icon(
+                      Icons.home_outlined,
+                      size: 80,
+                      color: corPrincipal,
                     ),
-                    border: const OutlineInputBorder(),
-                    focusedBorder:
-                        const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: corPrincipal,
-                        width: 2,
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Bem-vindo!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    errorText: erroEmail,
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                const Text('SENHA'),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: senha,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: 'Digite sua senha',
-                    prefixIcon: const Icon(
-                      Icons.lock_outline,
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Entre na sua conta para continuar.',
+                      textAlign: TextAlign.center,
                     ),
-                    border: const OutlineInputBorder(),
-                    focusedBorder:
-                        const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: corPrincipal,
-                        width: 2,
+                    const SizedBox(height: 32),
+
+                    const Text('EMAIL'),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: email,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        hintText: 'Digite seu e-mail',
+                        prefixIcon: const Icon(Icons.email_outlined),
+                        border: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: corPrincipal,
+                            width: 2,
+                          ),
+                        ),
+                        errorText: erroEmail,
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
                     ),
-                    errorText: erroSenha,
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
+                    const SizedBox(height: 20),
 
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(
-                        context,
-                        'recuperar_senha',
-                      );
-                    },
-                    child: const Text(
-                      'Esqueci minha senha',
+                    const Text('SENHA'),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: senha,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        hintText: 'Digite sua senha',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        border: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: corPrincipal,
+                            width: 2,
+                          ),
+                        ),
+                        errorText: erroSenha,
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 12),
 
-                ElevatedButton(
-                  onPressed: entrar,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: corPrincipal,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.all(16),
-                  ),
-                  child: const Text('Entrar'),
-                ),
-                const SizedBox(height: 12),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: controller.carregando
+                            ? null
+                            : () {
+                                Navigator.pushNamed(
+                                  context,
+                                  'recuperar_senha',
+                                );
+                              },
+                        child: const Text('Esqueci minha senha'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
 
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      'cadastro_usuario',
-                    );
-                  },
-                  child: const Text('Criar uma conta'),
+                    ElevatedButton(
+                      onPressed: controller.carregando ? null : entrar,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: corPrincipal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.all(16),
+                      ),
+                      child: controller.carregando
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text('Entrar'),
+                    ),
+                    const SizedBox(height: 12),
+
+                    TextButton(
+                      onPressed: controller.carregando
+                          ? null
+                          : () {
+                              Navigator.pushNamed(
+                                context,
+                                'cadastro_usuario',
+                              );
+                            },
+                      child: const Text('Criar uma conta'),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

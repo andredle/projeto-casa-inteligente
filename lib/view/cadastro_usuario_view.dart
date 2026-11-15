@@ -1,7 +1,6 @@
 
 import 'package:flutter/material.dart';
 import '../controller/cadastro_usuario_controller.dart';
-import '../controller/usuario_controller.dart';
 
 class CadastroUsuarioView extends StatefulWidget {
   const CadastroUsuarioView({super.key});
@@ -28,6 +27,8 @@ class _CadastroUsuarioViewState
   String? erroSenha;
   String? erroConfirmarSenha;
 
+  bool carregando = false;
+
   @override
   void dispose() {
     nome.dispose();
@@ -39,44 +40,69 @@ class _CadastroUsuarioViewState
     super.dispose();
   }
 
-  void cadastrar() {
-  final erros = controller.validarCadastro(
-    nome: nome.text,
-    email: email.text,
-    telefone: telefone.text,
-    senha: senha.text,
-    confirmarSenha: confirmarSenha.text,
-  );
+  Future<void> cadastrar() async {
+    if (carregando) return;
 
-  setState(() {
-    erroNome = erros['nome'];
-    erroEmail = erros['email'];
-    erroTelefone = erros['telefone'];
-    erroSenha = erros['senha'];
-    erroConfirmarSenha = erros['confirmarSenha'];
-  });
+    final erros = controller.validarCadastro(
+      nome: nome.text,
+      email: email.text,
+      telefone: telefone.text,
+      senha: senha.text,
+      confirmarSenha: confirmarSenha.text,
+    );
 
-  if (erros.values.any((erro) => erro != null)) {
-    return;
+    setState(() {
+      erroNome = erros['nome'];
+      erroEmail = erros['email'];
+      erroTelefone = erros['telefone'];
+      erroSenha = erros['senha'];
+      erroConfirmarSenha = erros['confirmarSenha'];
+    });
+
+    if (erros.values.any((erro) => erro != null)) {
+      return;
+    }
+
+    setState(() {
+      carregando = true;
+    });
+
+    final resultado = await controller.cadastrarUsuario(
+      nome: nome.text,
+      email: email.text,
+      telefone: telefone.text,
+      senha: senha.text,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      carregando = false;
+    });
+
+    if (resultado != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(resultado),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Conta criada com sucesso!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      'home',
+      (route) => false,
+    );
   }
-
-  UsuarioController.instance.atualizarNome(
-    nome.text.trim(),
-  );
-
-  UsuarioController.instance.atualizarEmail(
-    email.text.trim(),
-  );
-
-  UsuarioController.instance.autenticar();
-
-  Navigator.pushNamedAndRemoveUntil(
-    context,
-    'home',
-    (route) => false,
-    arguments: nome.text.trim(),
-  );
-}
 
   @override
   Widget build(BuildContext context) {
@@ -114,9 +140,7 @@ class _CadastroUsuarioViewState
                 controller: nome,
                 decoration: InputDecoration(
                   hintText: 'Digite seu nome',
-                  prefixIcon: const Icon(
-                    Icons.person_outline,
-                  ),
+                  prefixIcon: const Icon(Icons.person_outline),
                   border: const OutlineInputBorder(),
                   errorText: erroNome,
                   filled: true,
@@ -132,9 +156,7 @@ class _CadastroUsuarioViewState
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   hintText: 'Digite seu e-mail',
-                  prefixIcon: const Icon(
-                    Icons.email_outlined,
-                  ),
+                  prefixIcon: const Icon(Icons.email_outlined),
                   border: const OutlineInputBorder(),
                   errorText: erroEmail,
                   filled: true,
@@ -150,9 +172,7 @@ class _CadastroUsuarioViewState
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
                   hintText: '(00) 000000000',
-                  prefixIcon: const Icon(
-                    Icons.phone_outlined,
-                  ),
+                  prefixIcon: const Icon(Icons.phone_outlined),
                   border: const OutlineInputBorder(),
                   errorText: erroTelefone,
                   filled: true,
@@ -168,9 +188,7 @@ class _CadastroUsuarioViewState
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: 'Crie uma senha',
-                  prefixIcon: const Icon(
-                    Icons.lock_outline,
-                  ),
+                  prefixIcon: const Icon(Icons.lock_outline),
                   border: const OutlineInputBorder(),
                   errorText: erroSenha,
                   filled: true,
@@ -186,9 +204,7 @@ class _CadastroUsuarioViewState
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: 'Confirme sua senha',
-                  prefixIcon: const Icon(
-                    Icons.lock_outline,
-                  ),
+                  prefixIcon: const Icon(Icons.lock_outline),
                   border: const OutlineInputBorder(),
                   errorText: erroConfirmarSenha,
                   filled: true,
@@ -198,17 +214,28 @@ class _CadastroUsuarioViewState
               const SizedBox(height: 28),
 
               ElevatedButton(
-                onPressed: cadastrar,
+                onPressed: carregando ? null : cadastrar,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: corPrincipal,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.all(16),
                 ),
-                child: const Text('Criar conta'),
+                child: carregando
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Criar conta'),
               ),
 
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: carregando
+                    ? null
+                    : () => Navigator.pop(context),
                 child: const Text(
                   'Já possui cadastro? Entre',
                 ),

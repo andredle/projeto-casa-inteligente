@@ -28,152 +28,181 @@ class _RecuperarSenhaViewState extends State<RecuperarSenhaView> {
     super.dispose();
   }
 
-  void solicitarRecuperacao() {
+  Future<void> solicitarRecuperacao() async {
     controller.atualizarEmail(emailController.text);
-
-    controller.solicitarRecuperacao();
-
-    setState(() {});
+    await controller.solicitarRecuperacao();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: corFundo,
-      appBar: AppBar(
-        backgroundColor: corFundo,
-        elevation: 0,
-        foregroundColor: corPrincipal,
-        title: const Text('Recuperar senha'),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(
-                    Icons.lock_reset,
-                    size: 80,
-                    color: corPrincipal,
-                  ),
-                  const SizedBox(height: 24),
-
-                  const Text(
-                    'Esqueceu sua senha?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: corPrincipal,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  const Text(
-                    'Informe o e-mail cadastrado para solicitar '
-                    'as instruções de recuperação da sua senha.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  TextField(
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    autofillHints: const [AutofillHints.email],
-                    decoration: InputDecoration(
-                      labelText: 'E-mail cadastrado',
-                      hintText: 'exemplo@email.com',
-                      prefixIcon: const Icon(
-                        Icons.email_outlined,
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        return Scaffold(
+          backgroundColor: corFundo,
+          appBar: AppBar(
+            backgroundColor: corFundo,
+            elevation: 0,
+            foregroundColor: corPrincipal,
+            title: const Text('Recuperar senha'),
+          ),
+          body: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Icon(
+                        Icons.lock_reset,
+                        size: 80,
                         color: corPrincipal,
                       ),
-                      errorText: controller.erroEmail,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: corPrincipal,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                  SizedBox(
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: solicitarRecuperacao,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: corPrincipal,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                      const Text(
+                        'Esqueceu sua senha?',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: corPrincipal,
                         ),
                       ),
-                      child: const Text(
-                        'Solicitar recuperação',
+                      const SizedBox(height: 12),
+
+                      const Text(
+                        'Informe o e-mail cadastrado para solicitar '
+                        'as instruções de recuperação da sua senha.',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 32),
+
+                      TextField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        autofillHints: const [AutofillHints.email],
+                        enabled: !controller.carregando,
+                        onChanged: controller.atualizarEmail,
+                        decoration: InputDecoration(
+                          labelText: 'E-mail cadastrado',
+                          hintText: 'exemplo@email.com',
+                          prefixIcon: const Icon(
+                            Icons.email_outlined,
+                            color: corPrincipal,
+                          ),
+                          errorText: controller.erroEmail,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: corPrincipal,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: controller.carregando
+                              ? null
+                              : solicitarRecuperacao,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: corPrincipal,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: controller.carregando
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'Solicitar recuperação',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                      ),
+
+                      if (controller.mensagemSucesso != null) ...[
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.green,
+                            ),
+                          ),
+                          child: Text(
+                            controller.mensagemSucesso!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      if (controller.erroGeral != null) ...[
+                        const SizedBox(height: 20),
+                        Text(
+                          controller.erroGeral!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+
+                      const SizedBox(height: 20),
+
+                      TextButton(
+                        onPressed: controller.carregando
+                            ? null
+                            : () {
+                                Navigator.pop(context);
+                              },
+                        child: const Text(
+                          'Voltar para o login',
+                          style: TextStyle(
+                            color: corPrincipal,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-
-                  if (controller.mensagemSucesso != null) ...[
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.green,
-                        ),
-                      ),
-                      child: Text(
-                        controller.mensagemSucesso!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.green,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 20),
-
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      'Voltar para o login',
-                      style: TextStyle(
-                        color: corPrincipal,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

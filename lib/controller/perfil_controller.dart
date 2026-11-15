@@ -1,15 +1,36 @@
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'usuario_controller.dart';
 
 class PerfilController extends ChangeNotifier {
   final UsuarioController _usuarioController =
       UsuarioController.instance;
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance;
+
   String get nomeUsuario => _usuarioController.nomeUsuario;
   String get emailUsuario => _usuarioController.emailUsuario;
 
-  String? atualizarPerfil(String novoNome) {
+  Stream<DocumentSnapshot<Map<String, dynamic>>> get usuarioStream {
+    final usuario = _auth.currentUser;
+
+    if (usuario == null) {
+      return const Stream.empty();
+    }
+
+    return _firestore
+        .collection('usuarios')
+        .doc(usuario.uid)
+        .snapshots();
+  }
+
+  Future<String?> atualizarPerfil(String novoNome) async {
     final nomeTrimado = novoNome.trim();
 
     if (nomeTrimado.isEmpty) {
@@ -20,9 +41,26 @@ class PerfilController extends ChangeNotifier {
       return 'Erro: O nome deve ter no mínimo 4 caracteres!';
     }
 
-    _usuarioController.atualizarNome(nomeTrimado);
-    notifyListeners();
+    final usuario = _auth.currentUser;
 
-    return null;
+    if (usuario == null) {
+      return 'Erro: Nenhum usuário está autenticado.';
+    }
+
+    try {
+      await _firestore
+          .collection('usuarios')
+          .doc(usuario.uid)
+          .update({
+        'nome': nomeTrimado,
+      });
+
+      _usuarioController.atualizarNome(nomeTrimado);
+      notifyListeners();
+
+      return null;
+    } catch (e) {
+      return 'Erro ao atualizar o perfil. Tente novamente.';
+    }
   }
 }

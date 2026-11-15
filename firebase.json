@@ -1,0 +1,37 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "casa-inteligente-ads",
+          "appId": "1:779656266904:android:523b7eb7e1e6b84a667ced",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "casa-inteligente-ads",
+          "configurations": {
+            "android": "1:779656266904:android:523b7eb7e1e6b84a667ced",
+            "ios": "1:779656266904:ios:b09e7a8a4e954911667ced",
+            "web": "1:779656266904:web:a713d607514bee02667ced"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
